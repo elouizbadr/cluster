@@ -1,0 +1,9 @@
+# InnoDB Cluster Configuration Parameters
+server-id = 1 # Change this to be unique between Cluster nodes
+log_bin = 1
+log_slave_updates = ON
+gtid_mode = ON
+enforce_gtid_consistency = ON
+master_info_repository = TABLE
+relay_log_info_repository = TABLE
+transaction_write_set_extraction = XXHASH64

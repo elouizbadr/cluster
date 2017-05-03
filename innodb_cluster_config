@@ -1,9 +1,29 @@
-# InnoDB Cluster Configuration Parameters
-server-id = 1 # Change this to be unique between Cluster nodes
-log_bin = 1
+#!/bin/bash
+
+## Stop MySQL Server, use either 'service' or 'systemctl' version depending on your system. [Must be automated!]
+service mysql stop
+#systemctl stop mysql
+
+## Replace 127.0.0.1 with 0.0.0.0 [Must automate configuration file detection!]
+sed 's/127\.0\.0\.1/0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+
+## Add parameters to MySQL Server configuration file [Must automate existing variables detection!]
+cat >> /etc/mysql/mysql.conf.d/mysqld.cnf<<EOL
+symbolic-links = 0
 log_slave_updates = ON
-gtid_mode = ON
-enforce_gtid_consistency = ON
-master_info_repository = TABLE
+server-id = $RANDOM
 relay_log_info_repository = TABLE
+master_info_repository = TABLE
+binlog_format = ROW
 transaction_write_set_extraction = XXHASH64
+disabled_storage_engines = MyISAM,BLACKHOLE,FEDERATED,CSV,ARCHIVE
+report_port = 3306
+binlog_checksum = NONE
+enforce_gtid_consistency = ON
+log_bin = 1
+gtid_mode = ON
+EOL
+
+## Start MySQL Server
+service mysql start
+#systemctl start mysql

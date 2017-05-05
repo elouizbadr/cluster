@@ -1,44 +1,19 @@
-node_a:
-    build: .
-    expose:
-    - 3306
-    - 4444
-    - 4567
-    - 4568
-    volumes:
-    - /opt/nodeA/mysql/data:/var/lib/mysql
+version: '2'
 
-node_b:
-    build: .
-    expose:
-    - 3306
-    - 4444
-    - 4567
-    - 4568
-    volumes:
-    - /opt/nodeB/mysql/data:/var/lib/mysql
+services:
+        percona-xtradb-cluster:
+          image: perconalab/percona-xtradb-cluster:latest
+          environment:
+            MYSQL_ROOT_PASSWORD: secret
+            CLUSTER_NAME: test 
+          networks:
+            - test_net 
+          ports:
+            - "3306"
+          volumes:
+            # create volumes for use
+            - /var/lib/mysql
 
-node_c:
-    build: .
-    expose:
-    - 3306
-    - 4444
-    - 4567
-    - 4568
-    volumes:
-    - /opt/nodeC/mysql/data:/var/lib/mysql
-
-proxysql:
-    build: proxysql/
-    volumes:
-    - /opt/proxysql/mysql/data:/var/lib/mysql
-    links:
-    - nodeA
-    - nodeB
-    - nodeC
-    ports:
-    - "2222:22"
-    - "6032:6032"
-    expose:
-    - 22
-    - 6032
+networks:
+  test_net:
+    driver: overlay

@@ -24,12 +24,12 @@ sleep 1; echo -n ". ";sleep 1; echo ". done!"
 # Launch the remaining Cluster nodes
 echo "Proceeding to launch remaining Cluster nodes: "
 for i in `seq 1 $((NUMBER_OF_NODES-1))`; do
-	echo "docker run -d -p 3306 --name node$((i+1)) --hostname node$((i+1)) \
+	docker run -d -p 3306 --name node$((i+1)) --hostname node$((i+1)) \
 		-e CLUSTER_NAME=$CLUSTER_NAME \
 		-e CLUSTER_JOIN="$octet1.$octet2.$octet3.2" \
 		-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 		-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
-	percona/percona-xtradb-cluster"
+	percona/percona-xtradb-cluster
         sleep 2
 	echo "- Adding node $((i+1)) to the Cluster : done !"
 done

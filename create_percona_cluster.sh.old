@@ -34,26 +34,3 @@ for i in `seq 1 $((NUMBER_OF_NODES-1))`; do
 	echo "- Adding node $((i+1)) to the Cluster : done !"
 done
 echo "Cluster deployed successfully!"
-
-# Configuration for HAProxy
-echo -n "Configuring Cluster nodes for HAProxy " ;
-for i in `seq 1 20`; do
-	sleep 1
-	echo -n ". "
-done
-echo ":"
-echo "	- configuring MySQL Check script!"
-docker exec node1 /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services "
-echo "	- configuring Cluster Check account!"
-docker exec node1 /bin/bash -c "mysql -u root -proot -e \"grant process on *.* to 'clustercheckuser'@'%' identified by 'clustercheckpassword!';\""
-docker exec node1 /bin/bash -c "mysql -u root -proot -e \"flush privileges;\""
-echo "	- configuring MySQL Check script!"
-#docker exec node1 /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends telnet nano xinetd"
-#docker exec node1 /bin/bash -c "/etc/init.d/xinetd restart"
-
-#docker exec node1 /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services "
-#docker 
-#echo "Cluster configured successfully for HAProxy!"
-
-#haproxy/check_haproxy_config.sh # Check HAProxy config file for syntax error
-haproxy/run_haproxy.sh # Run HAProxy Docker container

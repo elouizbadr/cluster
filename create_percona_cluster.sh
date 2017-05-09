@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
-NETWORK=${NETWORK:-172.17.0.0}
-CLUSTER_NAME=${CLUSTER_NAME:-percona_cluster}
-NUMBER_OF_NODES=${NUMBER_OF_NODES:-3}
-MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
-XTRABACKUP_PASSWORD=${XTRABACKUP_PASSWORD:-$MYSQL_ROOT_PASSWORD}
+export NETWORK=${NETWORK:-172.17.0.0}
+export CLUSTER_NAME=${CLUSTER_NAME:-percona_cluster}
+export NUMBER_OF_NODES=${NUMBER_OF_NODES:-3}
+export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+export XTRABACKUP_PASSWORD=${XTRABACKUP_PASSWORD:-$MYSQL_ROOT_PASSWORD}
 
 # Extract network addresses
 IFS=. read octet1 octet2 octet3 octet4 <<< "$NETWORK"
@@ -36,24 +36,4 @@ done
 echo "Cluster deployed successfully!"
 
 # Configuration for HAProxy
-echo -n "Configuring Cluster nodes for HAProxy " ;
-for i in `seq 1 10`; do
-	sleep 1
-	echo -n ". "
-done
-echo ":"
-for i in `seq 1 $((NUMBER_OF_NODES))`; do
-	echo "Node #$i :"
-	echo "	- configuring MySQL Check script!"
-	docker exec node$i /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services " > /dev/null
-	echo "	- configuring Cluster Check account!"
-	docker exec node$i /bin/bash -c "mysql -u root -proot -e \"grant process on *.* to 'clustercheckuser'@'%' identified by 'clustercheckpassword!';flush privileges;\"" > /dev/null
-	echo "	- configuring MySQL Check script!"
-	docker exec node$i /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends telnet nano xinetd" > /dev/null
-	docker exec node$i /bin/bash -c "service xinetd start" > /dev/null
-done
-echo "	- checking HAProxy configuration!"
-haproxy/check_haproxy_config.sh > /dev/null # Check HAProxy config file for syntax error
-echo "	- running HAProxy proxy!"
-haproxy/run_haproxy.sh > /dev/null # Run HAProxy Docker container
-echo "Cluster configured successfully for HAProxy!"
+. ./configure_haproxy.sh

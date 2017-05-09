@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 NUMBER_OF_NODES=${NUMBER_OF_NODES:-3}
 
 # Stopping Cluster nodes

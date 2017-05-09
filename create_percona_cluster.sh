@@ -29,7 +29,7 @@ for i in `seq 1 $((NUMBER_OF_NODES-1))`; do
 		-e CLUSTER_JOIN="$octet1.$octet2.$octet3.2" \
 		-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 		-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
-	percona/percona-xtradb-cluster
+	percona/percona-xtradb-cluster 
         sleep 2
 	echo "- Adding node $((i+1)) to the Cluster : done !"
 done
@@ -37,23 +37,23 @@ echo "Cluster deployed successfully!"
 
 # Configuration for HAProxy
 echo -n "Configuring Cluster nodes for HAProxy " ;
-for i in `seq 1 20`; do
+for i in `seq 1 10`; do
 	sleep 1
 	echo -n ". "
 done
 echo ":"
-echo "	- configuring MySQL Check script!"
-docker exec node1 /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services "
-echo "	- configuring Cluster Check account!"
-docker exec node1 /bin/bash -c "mysql -u root -proot -e \"grant process on *.* to 'clustercheckuser'@'%' identified by 'clustercheckpassword!';\""
-docker exec node1 /bin/bash -c "mysql -u root -proot -e \"flush privileges;\""
-echo "	- configuring MySQL Check script!"
-#docker exec node1 /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends telnet nano xinetd"
-#docker exec node1 /bin/bash -c "/etc/init.d/xinetd restart"
-
-#docker exec node1 /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services "
-#docker 
-#echo "Cluster configured successfully for HAProxy!"
-
-#haproxy/check_haproxy_config.sh # Check HAProxy config file for syntax error
-haproxy/run_haproxy.sh # Run HAProxy Docker container
+for i in `seq 1 $((NUMBER_OF_NODES))`; do
+	echo "Node #$i :"
+	echo "	- configuring MySQL Check script!"
+	docker exec node$i /bin/bash -c "echo 'mysqlchk	9200/tcp	# mysqlchk' >> /etc/services " > /dev/null
+	echo "	- configuring Cluster Check account!"
+	docker exec node$i /bin/bash -c "mysql -u root -proot -e \"grant process on *.* to 'clustercheckuser'@'%' identified by 'clustercheckpassword!';flush privileges;\"" > /dev/null
+	echo "	- configuring MySQL Check script!"
+	docker exec node$i /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends telnet nano xinetd" > /dev/null
+	docker exec node$i /bin/bash -c "service xinetd start" > /dev/null
+done
+echo "	- checking HAProxy configuration!"
+haproxy/check_haproxy_config.sh > /dev/null # Check HAProxy config file for syntax error
+echo "	- running HAProxy proxy!"
+haproxy/run_haproxy.sh > /dev/null # Run HAProxy Docker container
+echo "Cluster configured successfully for HAProxy!"

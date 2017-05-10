@@ -10,11 +10,13 @@ IFS=. read octet1 octet2 octet3 octet4 <<< "$CLUSTER_NETWORK"
 # Launch the first node which is responsible for initializing the Cluster
 echo "Initiatlizing Percona cluster ... "
 number=1
-docker run -d --name "$CLUSTER_NODES_NAME$number" --hostname "$CLUSTER_NODES_HOSTNAME$number" \
-  -e CLUSTER_NAME=$CLUSTER_NAME \
-  -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
-  -e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
-  percona/percona-xtradb-cluster
+docker run -d \
+	--name "$CLUSTER_NODES_NAME$number" \
+	--hostname "$CLUSTER_NODES_HOSTNAME$number" \
+	-e CLUSTER_NAME=$CLUSTER_NAME \
+	-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+	-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
+	albodor/percona-cluster-haproxy
 echo "done!"
 echo -n "Waiting for first Cluster node to prepare "
 for i in `seq 1 10`; do
@@ -25,17 +27,17 @@ echo "done!"
 
 # Launch the remaining Cluster nodes
 echo "Proceeding to launch remaining Cluster nodes: "
-for i in `seq 1 $((CLUSTER_NODES_SIZE-1))`; do
+for j in `seq 2 $((CLUSTER_NODES_SIZE))`; do
 	docker run -d \
-		--name $CLUSTER_NODES_NAME$((i+1)) \
-		--hostname $CLUSTER_NODES_HOSTNAME$((i+1)) \
+		--name $CLUSTER_NODES_NAME$j \
+		--hostname $CLUSTER_NODES_HOSTNAME$j \
 		-e CLUSTER_NAME=$CLUSTER_NAME \
 		-e CLUSTER_JOIN="$octet1.$octet2.$octet3.2" \
 		-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 		-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
-	percona/percona-xtradb-cluster 
+	albodor/percona-cluster-haproxy
         sleep 2
-	echo "- Adding node $((i+1)) to the Cluster : done !"
+	echo "- Adding node $j to the Cluster : done !"
 done
 echo "Cluster nodes are deployed successfully!"
 

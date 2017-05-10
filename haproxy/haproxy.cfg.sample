@@ -1,0 +1,28 @@
+global
+	log 127.0.0.1	local0 notice
+	uid 99
+	gid 99
+
+defaults
+	log	global
+	retries	3
+	timeout	connect	5000ms
+	timeout	client	50000ms
+	timeout	server	50000ms
+
+
+listen stats
+	bind 0.0.0.0:80
+	mode http
+	stats enable
+	stats uri /
+	stats realm Strictly\ Private
+	stats auth test:test
+
+listen percona-cluster
+	bind *:3306
+	mode	tcp
+	timeout client	10800s
+	timeout server	10800s
+	balance	roundrobin
+	option	httpchk

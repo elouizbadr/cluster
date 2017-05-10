@@ -1,17 +1,22 @@
 #!/bin/bash
-NUMBER_OF_NODES=${NUMBER_OF_NODES:-3}
+source ./percona_cluster.cfg
 
 # Stopping Cluster nodes
 echo "Proceeding to stop Cluster nodes: "
-for i in `seq 1 $((NUMBER_OF_NODES))`; do
-	echo "- Stopping node$i ! ... ";
-	docker container stop node$i
+for i in `seq 1 $((CLUSTER_NODES_SIZE))`; do
+	echo "- Stopping $CLUSTER_NODES_NAME$i ! ... ";
+	docker container stop $CLUSTER_NODES_NAME$i
 done
 
 # Removing Cluster nodes
 echo "Proceeding to remove Cluster nodes: "
-for i in `seq 1 $((NUMBER_OF_NODES))`; do
-	echo "- Removing node$i ! ... ";
-	docker container rm node$i
+for i in `seq 1 $((CLUSTER_NODES_SIZE))`; do
+	echo "- Removing $CLUSTER_NODES_NAME$i ! ... ";
+	docker container rm $CLUSTER_NODES_NAME$i
 done
+
+# Removing HAProxy
+echo "Proceeding to remove HAProxy node: "
+docker container rm -f $HAPROXY_NODE_NAME
+
 echo "Cluster destroyed successfully!"

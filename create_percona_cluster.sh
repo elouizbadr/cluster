@@ -1,30 +1,34 @@
 #!/bin/bash
 set -e
-export NETWORK=${NETWORK:-172.17.0.0}
-export CLUSTER_NAME=${CLUSTER_NAME:-percona_cluster}
-export NUMBER_OF_NODES=${NUMBER_OF_NODES:-3}
-export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
-export XTRABACKUP_PASSWORD=${XTRABACKUP_PASSWORD:-$MYSQL_ROOT_PASSWORD}
+
+# Read configuration file
+source ./percona_cluster.cfg
 
 # Extract network addresses
-IFS=. read octet1 octet2 octet3 octet4 <<< "$NETWORK"
+IFS=. read octet1 octet2 octet3 octet4 <<< "$CLUSTER_NETWORK"
 
 # Launch the first node which is responsible for initializing the Cluster
 echo "Initiatlizing Percona cluster ... "
-docker run -d -p 3306 --name node1 --hostname node1 \
+number=1
+docker run -d --name "$CLUSTER_NODES_NAME$number" --hostname "$CLUSTER_NODES_HOSTNAME$number" \
   -e CLUSTER_NAME=$CLUSTER_NAME \
   -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
   -e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
   percona/percona-xtradb-cluster
 echo "done!"
 echo -n "Waiting for first Cluster node to prepare "
-sleep 1; echo -n ". ";sleep 1; echo -n ". ";
-sleep 1; echo -n ". ";sleep 1; echo ". done!"
+for i in `seq 1 10`; do
+	echo -n ". "
+	sleep 1
+done
+echo "done!"
 
 # Launch the remaining Cluster nodes
 echo "Proceeding to launch remaining Cluster nodes: "
-for i in `seq 1 $((NUMBER_OF_NODES-1))`; do
-	docker run -d -p 3306 --name node$((i+1)) --hostname node$((i+1)) \
+for i in `seq 1 $((CLUSTER_NODES_SIZE-1))`; do
+	docker run -d \
+		--name $CLUSTER_NODES_NAME$((i+1)) \
+		--hostname $CLUSTER_NODES_HOSTNAME$((i+1)) \
 		-e CLUSTER_NAME=$CLUSTER_NAME \
 		-e CLUSTER_JOIN="$octet1.$octet2.$octet3.2" \
 		-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
@@ -33,7 +37,7 @@ for i in `seq 1 $((NUMBER_OF_NODES-1))`; do
         sleep 2
 	echo "- Adding node $((i+1)) to the Cluster : done !"
 done
-echo "Cluster deployed successfully!"
+echo "Cluster nodes are deployed successfully!"
 
 # Configuration for HAProxy
-. ./configure_haproxy.sh
+./haproxy/configure_haproxy.sh

@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./percona_cluster.cfg
+source ~/cluster/percona_cluster.cfg
 
 # Stopping Cluster nodes
 echo "Proceeding to stop Cluster nodes: "

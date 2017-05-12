@@ -2,7 +2,7 @@
 set -e
 
 # Read configuration file
-source ./percona_cluster.cfg
+source ~/cluster/percona_cluster.cfg
 
 # Extract network addresses
 IFS=. read octet1 octet2 octet3 octet4 <<< "$CLUSTER_NETWORK"
@@ -18,9 +18,9 @@ docker run -d \
 	-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 	-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
 	albodor/percona-cluster-haproxy
-rm -f haproxy/haproxy.cfg
-cp haproxy/haproxy.cfg.sample haproxy/haproxy.cfg
-echo "	server $CLUSTER_NODES_NAME$number 172.17.0.2:3306 check port 9200 inter 12000 rise 3 fall 3" >> haproxy/haproxy.cfg
+rm -f ~/cluster/haproxy/haproxy.cfg
+cp ~/cluster/haproxy/haproxy.cfg.sample ~/cluster/haproxy/haproxy.cfg
+echo "	server $CLUSTER_NODES_NAME$number 172.17.0.2:3306 check port 9200 inter 12000 rise 3 fall 3" >> ~/cluster/haproxy/haproxy.cfg
 echo "done!"
 echo -n "Waiting for first Cluster node to prepare "
 for i in `seq 1 10`; do
@@ -40,11 +40,11 @@ for j in `seq 2 $((CLUSTER_NODES_SIZE))`; do
 		-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 		-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
 	albodor/percona-cluster-haproxy
-	echo "	server $CLUSTER_NODES_NAME$j $octet1.$octet2.$octet3.$((j+1)):3306 check port 9200 inter 12000 rise 3 fall 3" >> haproxy/haproxy.cfg
+	echo "	server $CLUSTER_NODES_NAME$j $octet1.$octet2.$octet3.$((j+1)):3306 check port 9200 inter 12000 rise 3 fall 3" >> ~/cluster/haproxy/haproxy.cfg
         sleep 2
 	echo "- Adding node $j to the Cluster : done !"
 done
 echo "Cluster nodes are deployed successfully!"
 
 # Configuration for HAProxy
-./haproxy/configure_haproxy.sh
+~/cluster/haproxy/configure_haproxy.sh

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 OSNAME=${OSNAME:-debian}
+DockerComposeVersion=${DockerComposeVersion:-1.13.0}
+
 
 # Install dependencies
 echo "Installing dependencies ... "
@@ -22,6 +24,8 @@ echo "Updating APT repositories ... "
 sudo apt-get update
 echo "Installing latest Docker-CE ... "
 sudo apt-get install -y docker-ce
+echo "Installing Docker Compose v$DockerComposeVersion ... "
+curl -L https://github.com/docker/compose/releases/download/$DockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 
 # Verify Docker-CE Installation
 echo "Verifying Docker-CE installation ... "

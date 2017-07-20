@@ -19,7 +19,7 @@ for i in `seq 1 $((CLUSTER_NODES_SIZE))`; do
 	docker exec $CLUSTER_NODES_NAME$i /bin/bash -c "service xinetd start" > /dev/null
 done
 echo "	- checking HAProxy configuration!"
-haproxy/check_haproxy_config.sh > /dev/null # Check HAProxy config file for syntax error
+./haproxy/check_haproxy_config.sh > /dev/null # Check HAProxy config file for syntax error
 echo "	- running HAProxy proxy!"
-haproxy/run_haproxy.sh > /dev/null # Run HAProxy Docker container
+./haproxy/run_haproxy.sh > /dev/null # Run HAProxy Docker container
 echo "Cluster configured successfully for HAProxy!"

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
-source ~/cluster/percona_cluster.cfg
+source percona_cluster.cfg
 
 # First, build HAProxy Docker image
 echo "Configuring HAProxy . . . "
 echo "	- Building HAProxy Docker image!"
-docker build -t "haproxy:latest" ~/cluster/haproxy/
+docker build -t "haproxy:latest" .
 
 # Second, verify configuration file for HAProxy
 echo "	- Verifying HAProxy configuration file!"

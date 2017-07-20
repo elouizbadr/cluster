@@ -2,7 +2,7 @@
 set -e
 
 # Read configuration file
-source ~/cluster/percona_cluster.cfg
+source percona_cluster.cfg
 
 # Extract network addresses
 IFS=. read octet1 octet2 octet3 octet4 <<< "$CLUSTER_NETWORK"
@@ -18,8 +18,8 @@ docker run -d \
 	-e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
 	-e XTRABACKUP_PASSWORD=$XTRABACKUP_PASSWORD \
 	albodor/percona-cluster-haproxy
-rm -f ~/cluster/haproxy/haproxy.cfg
-cp ~/cluster/haproxy/haproxy.cfg.sample ~/cluster/haproxy/haproxy.cfg
+rm -f haproxy/haproxy.cfg
+cp haproxy/haproxy.cfg.sample haproxy/haproxy.cfg
 echo "	server $CLUSTER_NODES_NAME$number 172.17.0.2:3306 check port 9200 inter 12000 rise 3 fall 3" >> ~/cluster/haproxy/haproxy.cfg
 echo "done!"
 echo -n "Waiting for first Cluster node to prepare "
@@ -47,4 +47,24 @@ done
 echo "Cluster nodes are deployed successfully!"
 
 # Configuration for HAProxy
-~/cluster/haproxy/configure_haproxy.sh
+
+# First, build HAProxy Docker image
+echo "Configuring HAProxy . . . "
+echo "	- Building HAProxy Docker image!"
+docker build -t "haproxy:latest" haproxy/
+
+# Second, verify configuration file for HAProxy
+echo "	- Verifying HAProxy configuration file!"
+docker run -t --rm \
+	--name haproxy-syntax-check \
+	haproxy haproxy	-c -f /usr/local/etc/haproxy/haproxy.cfg
+
+# Last, run HAProxy Docker container
+echo "	- Running HAProxy Docker container!"
+docker run -d \
+	-p $HAPROXY_CLUSTER_PORT:3306 \
+	-p $HAPROXY_WEBSTATS_PORT:80 \
+	--name $HAPROXY_NODE_NAME \
+	haproxy:latest
+
+echo "HAProxy is configured successfully!"
